@@ -1,0 +1,21 @@
+# India ESG/GHG Data Science Project - Dependencies
+# Install with: pip install -r requirements.txt
+
+# --- Core Data Science ---
+numpy>=1.24.0
+pandas>=1.5.0
+scipy>=1.10.0
+
+# --- Machine Learning ---
+scikit-learn>=1.2.0
+
+# --- Visualization ---
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# --- Optional: Jupyter Notebook for interactive analysis ---
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# --- Optional: Interactive web dashboard (kept from original) ---
+# No Python deps needed - uses Chart.js CDN in index.html

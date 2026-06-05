@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India GHG Intelligence — ESG Analytics Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface2: #f0f2f8;
+  --border: #e4e7f0;
+  --border2: #cdd2e8;
+  --blue: #2563eb;
+  --blue-light: #eff4ff;
+  --blue-mid: #bfcffe;
+  --teal: #0d9488;
+  --teal-light: #f0fdfa;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --slate: #334155;
+  --slate2: #64748b;
+  --slate3: #94a3b8;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Manrope', sans-serif;
+  --r: 10px;
+  --r-sm: 6px;
+  --shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6}
+
+/* ── SIDEBAR ── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{width:28px;height:28px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.logo-mark svg{width:16px;height:16px;fill:white}
+.logo-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+.logo-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;transition:all 0.15s;color:var(--text2);font-size:13px;font-weight:500;margin:1px 8px;border:none;background:none;width:calc(100% - 16px);text-align:left}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:0.7}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border)}
+.data-badge{background:var(--green-light);border:1px solid #bbf7d0;border-radius:6px;padding:8px 10px}
+.data-badge-title{font-size:10px;font-weight:700;color:var(--green);font-family:var(--mono);letter-spacing:0.05em}
+.data-badge-sub{font-size:10px;color:#4ade80;margin-top:2px;color:#15803d}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.page-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.02em}
+.page-sub{font-size:12px;color:var(--text3)}
+.sep{width:1px;height:18px;background:var(--border)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.filter-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:var(--sans)}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+.filter-btn.active{background:var(--blue);color:white;border-color:var(--blue)}
+.filter-btn svg{width:13px;height:13px}
+.export-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:var(--sans)}
+.export-btn:hover{background:#1d4ed8}
+
+/* ── YEAR FILTER BAR ── */
+.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-right:4px}
+.year-chip{padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-family:var(--mono);cursor:pointer;color:var(--text2);background:var(--surface);transition:all 0.15s}
+.year-chip:hover{border-color:var(--blue);color:var(--blue)}
+.year-chip.active{background:var(--blue);color:white;border-color:var(--blue)}
+.vdivider{width:1px;height:18px;background:var(--border);margin:0 4px}
+.metric-chip{padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-family:var(--mono);cursor:pointer;color:var(--text2);background:var(--surface);transition:all 0.15s}
+.metric-chip:hover{border-color:var(--teal);color:var(--teal)}
+.metric-chip.active{background:var(--teal);color:white;border-color:var(--teal)}
+
+/* ── CONTENT ── */
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
+
+/* ── KPI ROW ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);transition:box-shadow 0.2s,transform 0.2s;cursor:default}
+.kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.kpi-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.kpi-icon{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.kpi-icon svg{width:12px;height:12px}
+.kpi-val{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.03em;line-height:1}
+.kpi-unit{font-size:11px;font-weight:500;color:var(--text3);margin-left:3px}
+.kpi-delta{font-size:11px;font-family:var(--mono);margin-top:8px;display:flex;align-items:center;gap:4px}
+.kpi-delta.up{color:var(--red)}
+.kpi-delta.dn{color:var(--green)}
+.kpi-delta.neutral{color:var(--text3)}
+.kpi-sparkline{margin-top:10px;height:32px;position:relative}
+
+/* ── CHART CARDS ── */
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.grid-2-eq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+.chart-card.span2{grid-column:span 2}
+.cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.cc-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+.cc-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.cc-actions{display:flex;gap:6px;align-items:center}
+.tag{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;font-family:var(--mono);letter-spacing:0.04em}
+.tag-blue{background:var(--blue-light);color:var(--blue)}
+.tag-red{background:var(--red-light);color:var(--red)}
+.tag-green{background:var(--green-light);color:var(--green)}
+.tag-amber{background:var(--amber-light);color:var(--amber)}
+.cc-toggle{display:flex;background:var(--surface2);border-radius:6px;padding:2px;gap:2px}
+.cc-toggle-btn{padding:4px 10px;border:none;border-radius:4px;font-size:11px;cursor:pointer;color:var(--text3);background:none;font-family:var(--sans);transition:all 0.15s}
+.cc-toggle-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);font-weight:600}
+.ch-wrap{position:relative}
+
+/* ── SCOPE SECTION ── */
+.scope-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.scope-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.scope-badge{display:inline-block;font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:0.06em}
+.s1 .scope-badge{background:var(--red-light);color:var(--red)}
+.s2 .scope-badge{background:var(--amber-light);color:var(--amber)}
+.s3 .scope-badge{background:var(--blue-light);color:var(--blue)}
+.scope-val{font-size:26px;font-weight:800;letter-spacing:-0.03em;color:var(--text);line-height:1;margin-bottom:4px}
+.scope-unit{font-size:12px;font-weight:500;color:var(--text3)}
+.scope-desc{font-size:11px;color:var(--text2);margin:8px 0 12px}
+.prog-bg{height:4px;background:var(--surface2);border-radius:2px}
+.prog-fill{height:4px;border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.s1 .prog-fill{background:var(--red)}
+.s2 .prog-fill{background:var(--amber)}
+.s3 .prog-fill{background:var(--blue)}
+.prog-label{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:5px}
+
+/* ── INSIGHT CARDS ── */
+.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);transition:box-shadow 0.2s,transform 0.2s;cursor:default}
+.insight-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.insight-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.insight-icon-wrap{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.insight-icon-wrap.red{background:var(--red-light)}
+.insight-icon-wrap.amber{background:var(--amber-light)}
+.insight-icon-wrap.green{background:var(--green-light)}
+.insight-icon-wrap.blue{background:var(--blue-light)}
+.insight-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-0.01em}
+.insight-body{font-size:11px;color:var(--text2);line-height:1.7}
+.insight-body b{color:var(--text);font-weight:600}
+.insight-metric{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-top:10px}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-family:var(--mono);padding:8px 12px;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.12s;cursor:default}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:9px 12px;font-size:12px;color:var(--text2);font-family:var(--mono);white-space:nowrap}
+tbody td:first-child{color:var(--text);font-weight:600;font-family:var(--sans)}
+.td-up{color:var(--red);font-weight:600}
+.td-dn{color:var(--green);font-weight:600}
+.td-bar{display:flex;align-items:center;gap:8px}
+.td-mini-bar{flex:1;height:4px;background:var(--surface2);border-radius:2px;max-width:80px}
+.td-mini-fill{height:4px;border-radius:2px;background:var(--blue)}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;padding:3px 6px;border-radius:4px;transition:background 0.12s}
+.leg:hover{background:var(--surface2)}
+.leg-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.leg-line{width:18px;height:2px;flex-shrink:0}
+.leg-dashed{width:18px;height:2px;flex-shrink:0;background:repeating-linear-gradient(90deg,var(--c,#999) 0,var(--c,#999) 4px,transparent 4px,transparent 7px)}
+
+/* ── TOOLTIP ── */
+.custom-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;box-shadow:var(--shadow-md);pointer-events:none;opacity:0;transition:opacity 0.15s;min-width:140px;z-index:50;font-family:var(--sans)}
+.tt-year{font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:0.05em}
+.tt-row{display:flex;justify-content:space-between;gap:16px;align-items:center;font-size:12px;margin:3px 0}
+.tt-label{color:var(--text2);display:flex;align-items:center;gap:5px}
+.tt-val{font-weight:700;color:var(--text);font-family:var(--mono)}
+
+/* ── SECTION DIVIDER ── */
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.section-head-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap}
+.section-head-line{flex:1;height:1px;background:var(--border)}
+
+/* ── CORRELATION ── */
+.corr-grid{display:grid;gap:2px}
+.corr-cell{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);font-weight:500;transition:opacity 0.2s}
+.corr-cell:hover{opacity:0.8}
+
+/* ── FOOTER ── */
+.footer-bar{background:var(--surface);border-top:1px solid var(--border);padding:12px 28px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text3);font-family:var(--mono)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:white;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:500;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.2s;transform:translateY(8px);z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── FADE IN ── */
+.fade{opacity:0;transform:translateY(12px);transition:opacity 0.4s ease,transform 0.4s ease}
+.fade.in{opacity:1;transform:none}
+
+@media(max-width:1100px){
+  .sidebar{display:none}
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .grid-2,.grid-2-eq,.grid-3,.scope-grid,.insight-grid{grid-template-columns:1fr}
+  .chart-card.span2{grid-column:auto}
+  .topbar,.content,.filter-bar{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16"><path d="M2 3h12v2H2zm0 4h8v2H2zm0 4h10v2H2z"/></svg>
+    </div>
+    <div class="logo-title">ESG Analytics</div>
+    <div class="logo-sub">India · GHG Dashboard</div>
+  </div>
+
+  <div class="sidebar-section">Analytics</div>
+  <button class="nav-item active" onclick="navTo('overview',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+    Overview
+  </button>
+  <button class="nav-item" onclick="navTo('emissions',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,7 9,9 15,3"/></svg>
+    Emissions Trend
+  </button>
+  <button class="nav-item" onclick="navTo('sources',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="8,8 8,3"/><polyline points="8,8 12,11"/></svg>
+    Source Breakdown
+  </button>
+  <button class="nav-item" onclick="navTo('intensity',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="13" x2="13" y2="3"/><polyline points="8,13 13,13 13,8"/></svg>
+    Intensity Metrics
+  </button>
+  <button class="nav-item" onclick="navTo('rawdata',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="1"/><line x1="1" y1="5" x2="15" y2="5"/><line x1="5" y1="5" x2="5" y2="15"/></svg>
+    Raw Data Table
+  </button>
+
+  <div class="sidebar-section">Tools</div>
+  <button class="nav-item" onclick="downloadCSV()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0-3-3m3 3 3-3M2 12v2h12v-2"/></svg>
+    Export CSV
+  </button>
+  <button class="nav-item" onclick="showCorrelation()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="12" r="2"/><circle cx="8" cy="5" r="2"/><circle cx="13" cy="9" r="2"/><line x1="5.4" y1="10.8" x2="6.6" y2="6.2"/><line x1="9.4" y1="6.6" x2="11.6" y2="8.1"/></svg>
+    Correlation Matrix
+  </button>
+
+  <div class="sidebar-footer">
+    <div class="data-badge">
+      <div class="data-badge-title">✓ VERIFIED DATA</div>
+      <div class="data-badge-sub">OWID · GCB 2024</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN AREA ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="page-title" id="page-title">India GHG Overview</div>
+        <div class="page-sub">Our World in Data · Global Carbon Budget 2024 · 2000–2024</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="filter-btn" onclick="toggleAnnotations(this)">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="6" x2="8" y2="10"/><line x1="8" y1="4" x2="8" y2="5"/></svg>
+        Annotations
+      </button>
+      <button class="filter-btn" onclick="toggleSmoothing(this)">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12 C4 12 4 3 8 6 S12 11 15 8"/></svg>
+        Smooth
+      </button>
+      <div class="sep"></div>
+      <button class="export-btn" onclick="downloadCSV()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0-3-3m3 3 3-3M2 12v2h12v-2"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">Period</span>
+    <button class="year-chip" onclick="setRange(2000,2024,this)">All (2000–24)</button>
+    <button class="year-chip active" onclick="setRange(2010,2024,this)">2010–24</button>
+    <button class="year-chip" onclick="setRange(2015,2024,this)">2015–24</button>
+    <button class="year-chip" onclick="setRange(2019,2024,this)">Post-COVID</button>
+    <div class="vdivider"></div>
+    <span class="filter-label">Metric</span>
+    <button class="metric-chip active" onclick="setMetric('co2',this)">CO₂</button>
+    <button class="metric-chip" onclick="setMetric('ghg',this)">Total GHG</button>
+    <button class="metric-chip" onclick="setMetric('coal',this)">Coal</button>
+    <button class="metric-chip" onclick="setMetric('oil',this)">Oil</button>
+    <button class="metric-chip" onclick="setMetric('per_capita',this)">Per Capita</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content-area">
+
+    <!-- ── KPI ROW ── -->
+    <div class="kpi-grid fade" id="kpi-section">
+      <div class="kpi-card">
+        <div class="kpi-label">Total CO₂ 2024 <span class="kpi-icon" style="background:var(--red-light)"><svg viewBox="0 0 12 12" fill="var(--red)"><path d="M6 1L11 11H1z"/></svg></span></div>
+        <div><span class="kpi-val" id="k-co2">3,193</span><span class="kpi-unit">MtCO₂</span></div>
+        <div class="kpi-delta up" id="k-co2-d">▲ +4.3% vs 2023</div>
+        <div class="kpi-sparkline"><canvas id="spark-co2" role="img" aria-label="CO2 sparkline"></canvas></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total GHG 2024 <span class="kpi-icon" style="background:var(--amber-light)"><svg viewBox="0 0 12 12" fill="var(--amber)"><circle cx="6" cy="6" r="5"/></svg></span></div>
+        <div><span class="kpi-val" id="k-ghg">4,262</span><span class="kpi-unit">MtCO₂e</span></div>
+        <div class="kpi-delta up" id="k-ghg-d">▲ +3.4% vs 2023</div>
+        <div class="kpi-sparkline"><canvas id="spark-ghg" role="img" aria-label="GHG sparkline"></canvas></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Per Capita 2024 <span class="kpi-icon" style="background:var(--blue-light)"><svg viewBox="0 0 12 12" fill="var(--blue)"><circle cx="6" cy="4" r="2.5"/><path d="M1 11c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg></span></div>
+        <div><span class="kpi-val" id="k-cap">2.20</span><span class="kpi-unit">tCO₂/person</span></div>
+        <div class="kpi-delta up" id="k-cap-d">▲ +3.3% vs 2023</div>
+        <div class="kpi-sparkline"><canvas id="spark-cap" role="img" aria-label="Per capita sparkline"></canvas></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Global Share <span class="kpi-icon" style="background:#faf5ff)"><svg viewBox="0 0 12 12" fill="#7c3aed"><path d="M6 1a5 5 0 100 10A5 5 0 006 1z"/></svg></span></div>
+        <div><span class="kpi-val" id="k-share">8.27</span><span class="kpi-unit">%</span></div>
+        <div class="kpi-delta up" id="k-share-d">▲ was 3.87% in 2000</div>
+        <div class="kpi-sparkline"><canvas id="spark-share" role="img" aria-label="Share sparkline"></canvas></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Energy 2024 <span class="kpi-icon" style="background:var(--teal-light)"><svg viewBox="0 0 12 12" fill="var(--teal)"><path d="M7 1L2 7h4l-1 4 5-6H6z"/></svg></span></div>
+        <div><span class="kpi-val" id="k-energy">11,336</span><span class="kpi-unit">TWh</span></div>
+        <div class="kpi-delta up" id="k-energy-d">▲ +4.7% vs 2023</div>
+        <div class="kpi-sparkline"><canvas id="spark-energy" role="img" aria-label="Energy sparkline"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ── MAIN CHARTS ROW 1 ── -->
+    <div class="grid-2 fade" id="row1">
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title" id="main-chart-title">CO₂ Emissions Trend</div>
+            <div class="cc-sub">India · Million tonnes CO₂ · All fossil sources</div>
+          </div>
+          <div class="cc-actions">
+            <div class="cc-toggle">
+              <button class="cc-toggle-btn active" onclick="setChartType('line',this)">Line</button>
+              <button class="cc-toggle-btn" onclick="setChartType('bar',this)">Bar</button>
+            </div>
+            <span class="tag tag-red" id="growth-tag">+223% since 2000</span>
+          </div>
+        </div>
+        <div class="legend" id="main-legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--blue)"></span>CO₂</span>
+        </div>
+        <div class="ch-wrap" style="height:220px"><canvas id="mainChart" role="img" aria-label="India CO2 emissions trend chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title">Source Mix 2024</div>
+            <div class="cc-sub">By fuel type · % share</div>
+          </div>
+          <span class="tag tag-amber">Coal dominant</span>
+        </div>
+        <div class="ch-wrap" style="height:180px"><canvas id="donutChart" role="img" aria-label="India 2024 emission source mix donut chart"></canvas></div>
+        <div id="donut-legend" class="legend" style="margin-top:12px;margin-bottom:0"></div>
+      </div>
+    </div>
+
+    <!-- ── ROW 2 ── -->
+    <div class="grid-2-eq fade" id="row2">
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title">Stacked Emission by Source</div>
+            <div class="cc-sub">Coal · Oil · Gas · Cement · MtCO₂</div>
+          </div>
+          <span class="tag tag-red">Coal still rising</span>
+        </div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#ef4444"></span>Coal</span>
+          <span class="leg"><span class="leg-sq" style="background:#f59e0b"></span>Oil</span>
+          <span class="leg"><span class="leg-sq" style="background:#22c55e"></span>Gas</span>
+          <span class="leg"><span class="leg-sq" style="background:#8b5cf6"></span>Cement</span>
+        </div>
+        <div class="ch-wrap" style="height:210px"><canvas id="stackedChart" role="img" aria-label="Stacked CO2 by source 2000-2024"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title">Total GHG vs CO₂ Only</div>
+            <div class="cc-sub">Includes Methane + N₂O · MtCO₂e</div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--blue)"></span>CO₂</span>
+          <span class="leg"><span class="leg-dashed" style="--c:var(--amber)"></span>Total GHG</span>
+        </div>
+        <div class="ch-wrap" style="height:210px"><canvas id="ghgChart" role="img" aria-label="Total GHG vs CO2 comparison India"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ── SCOPE SECTION ── -->
+    <div class="fade" id="scope-section">
+      <div class="section-head"><span class="section-head-title">Scope 1 / 2 / 3 Equivalent (2024)</span><div class="section-head-line"></div></div>
+      <div class="scope-grid">
+        <div class="scope-card s1">
+          <span class="scope-badge">SCOPE 1 — DIRECT</span>
+          <div class="scope-val">2,108 <span class="scope-unit">MtCO₂</span></div>
+          <div class="scope-desc">On-site fossil fuel combustion — coal-fired power plants, industrial furnaces, direct fuel burning</div>
+          <div class="prog-bg"><div class="prog-fill" style="width:66%"></div></div>
+          <div class="prog-label">66% of total CO₂ · All-time high</div>
+        </div>
+        <div class="scope-card s2">
+          <span class="scope-badge">SCOPE 2 — ELECTRICITY</span>
+          <div class="scope-val">747 <span class="scope-unit">MtCO₂</span></div>
+          <div class="scope-desc">Purchased electricity & heat — oil-based power generation, grid-sourced energy for manufacturing</div>
+          <div class="prog-bg"><div class="prog-fill" style="width:23%"></div></div>
+          <div class="prog-label">23% of total CO₂</div>
+        </div>
+        <div class="scope-card s3">
+          <span class="scope-badge">SCOPE 3 — VALUE CHAIN</span>
+          <div class="scope-val">335 <span class="scope-unit">MtCO₂</span></div>
+          <div class="scope-desc">Upstream gas combustion + cement process emissions — supply chain, logistics, embedded carbon</div>
+          <div class="prog-bg"><div class="prog-fill" style="width:11%"></div></div>
+          <div class="prog-label">11% of total CO₂ · BRSR Scope 3 proxy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ROW 3: INTENSITY + GHG BREAKDOWN ── -->
+    <div class="grid-2-eq fade" id="row3">
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title">CO₂ per Capita vs GDP Intensity</div>
+            <div class="cc-sub">Dual axis · Decoupling analysis</div>
+          </div>
+          <span class="tag tag-green">GDP decoupling</span>
+        </div>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--blue)"></span>tCO₂/person (L)</span>
+          <span class="leg"><span class="leg-dashed" style="--c:var(--teal)"></span>kg CO₂/$1000 GDP (R)</span>
+        </div>
+        <div class="ch-wrap" style="height:210px"><canvas id="intensityChart" role="img" aria-label="CO2 per capita vs GDP intensity dual axis chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head">
+          <div>
+            <div class="cc-title">GHG Components — 2024</div>
+            <div class="cc-sub">CO₂ · Methane · Nitrous Oxide · MtCO₂e</div>
+          </div>
+        </div>
+        <div class="ch-wrap" style="height:240px"><canvas id="ghgBar" role="img" aria-label="GHG breakdown by component 2024"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ── INSIGHTS ── -->
+    <div class="fade" id="insights-section">
+      <div class="section-head"><span class="section-head-title">Strategic ESG Insights</span><div class="section-head-line"></div></div>
+      <div class="insight-grid" id="insight-grid"></div>
+    </div>
+
+    <!-- ── CORRELATION ── -->
+    <div class="chart-card fade" id="corr-section" style="display:none">
+      <div class="cc-head">
+        <div>
+          <div class="cc-title">Correlation Matrix — All Variables</div>
+          <div class="cc-sub">Pearson r · 2000–2022 · Hover for value</div>
+        </div>
+        <button class="filter-btn" onclick="document.getElementById('corr-section').style.display='none'">Close ✕</button>
+      </div>
+      <div id="corr-container"></div>
+    </div>
+
+    <!-- ── RAW DATA TABLE ── -->
+    <div class="chart-card fade" id="rawdata-section">
+      <div class="cc-head">
+        <div>
+          <div class="cc-title">Annual Data Table — India 2000–2024</div>
+          <div class="cc-sub">Source: OWID CO₂ data · All values in MtCO₂ unless noted</div>
+        </div>
+        <div class="cc-actions">
+          <button class="filter-btn" onclick="sortTable('year')">Sort Year</button>
+          <button class="filter-btn" onclick="sortTable('co2')">Sort CO₂</button>
+          <button class="export-btn" onclick="downloadCSV()">↓ CSV</button>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table id="rawTable"></table></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <span>Data: Our World in Data · OWID CO₂ Dataset · Global Carbon Budget 2024 · Hannah Ritchie, Pablo Rosado et al.</span>
+    <span>India GHG Intelligence Dashboard · ESG Analytics Platform · 2025</span>
+  </div>
+
+</div>
+</div>
+
+<script>
+const DATA = [{"year":2000,"co2":987.065,"coal_co2":572.903,"oil_co2":313.441,"gas_co2":52.791,"cement_co2":45.957,"co2_per_capita":0.933,"primary_energy_consumption":3725.401,"total_ghg":2005.885,"methane":685.316,"nitrous_oxide":183.787,"share_global_co2":3.869,"gdp":2804478499774},{"year":2001,"co2":1001.198,"coal_co2":582.111,"oil_co2":317.363,"gas_co2":53.128,"cement_co2":46.74,"co2_per_capita":0.929,"primary_energy_consumption":3740.874,"total_ghg":2000.273,"methane":689.962,"nitrous_oxide":186.588,"share_global_co2":3.897,"gdp":2940745466088},{"year":2002,"co2":1032.75,"coal_co2":598.539,"oil_co2":325.889,"gas_co2":57.609,"cement_co2":49.111,"co2_per_capita":0.941,"primary_energy_consumption":3870.809,"total_ghg":1994.045,"methane":683.408,"nitrous_oxide":180.288,"share_global_co2":3.932,"gdp":3024984520809},{"year":2003,"co2":1068.398,"coal_co2":625.833,"oil_co2":331.333,"gas_co2":58.565,"cement_co2":50.88,"co2_per_capita":0.957,"primary_energy_consumption":4008.71,"total_ghg":2059.556,"methane":695.315,"nitrous_oxide":186.553,"share_global_co2":3.864,"gdp":3251114494190},{"year":2004,"co2":1134.611,"coal_co2":669.993,"oil_co2":348.992,"gas_co2":58.316,"cement_co2":55.545,"co2_per_capita":0.999,"primary_energy_consumption":4352.651,"total_ghg":2129.202,"methane":705.392,"nitrous_oxide":193.083,"share_global_co2":3.966,"gdp":3495022816540},{"year":2005,"co2":1195.393,"coal_co2":721.496,"oil_co2":353.15,"gas_co2":59.357,"cement_co2":59.687,"co2_per_capita":1.035,"primary_energy_consumption":4608.417,"total_ghg":2205.413,"methane":721.894,"nitrous_oxide":201.701,"share_global_co2":4.039,"gdp":3752627653422},{"year":2006,"co2":1293.321,"coal_co2":773.551,"oil_co2":370.544,"gas_co2":82.58,"cement_co2":64.905,"co2_per_capita":1.103,"primary_energy_consumption":4854.867,"total_ghg":2324.594,"methane":733.283,"nitrous_oxide":211.708,"share_global_co2":4.227,"gdp":4069856052453},{"year":2007,"co2":1393.485,"coal_co2":842.536,"oil_co2":392.818,"gas_co2":87.956,"cement_co2":68.333,"co2_per_capita":1.17,"primary_energy_consumption":5268.96,"total_ghg":2485.674,"methane":749.827,"nitrous_oxide":222.493,"share_global_co2":4.424,"gdp":4403215224414},{"year":2008,"co2":1490.366,"coal_co2":910.753,"oil_co2":414.204,"gas_co2":90.277,"cement_co2":73.245,"co2_per_capita":1.234,"primary_energy_consumption":5576.529,"total_ghg":2641.331,"methane":764.115,"nitrous_oxide":227.304,"share_global_co2":4.65,"gdp":4649548164533},{"year":2009,"co2":1613.328,"coal_co2":983.947,"oil_co2":433.771,"gas_co2":112.463,"cement_co2":81.268,"co2_per_capita":1.316,"primary_energy_consumption":5988.39,"total_ghg":2738.05,"methane":762.322,"nitrous_oxide":233.941,"share_global_co2":5.12,"gdp":4993478894185},{"year":2010,"co2":1678.53,"coal_co2":1015.983,"oil_co2":440.692,"gas_co2":134.121,"cement_co2":86.029,"co2_per_capita":1.35,"primary_energy_consumption":6247.89,"total_ghg":2848.131,"methane":769.342,"nitrous_oxide":242.128,"share_global_co2":5.038,"gdp":5361371354007},{"year":2011,"co2":1765.695,"coal_co2":1074.385,"oil_co2":461.37,"gas_co2":135.977,"cement_co2":91.314,"co2_per_capita":1.4,"primary_energy_consumption":6587.01,"total_ghg":2950.343,"methane":781.037,"nitrous_oxide":251.811,"share_global_co2":5.121,"gdp":5720692888000},{"year":2012,"co2":1926.986,"coal_co2":1206.452,"oil_co2":491.148,"gas_co2":125.558,"cement_co2":100.237,"co2_per_capita":1.507,"primary_energy_consumption":6937.768,"total_ghg":3164.01,"methane":783.911,"nitrous_oxide":254.287,"share_global_co2":5.513,"gdp":6052427493607},{"year":2013,"co2":1995.337,"coal_co2":1276.383,"oil_co2":498.314,"gas_co2":109.554,"cement_co2":107.82,"co2_per_capita":1.54,"primary_energy_consumption":7163.062,"total_ghg":3124.772,"methane":758.221,"nitrous_oxide":255.623,"share_global_co2":5.656,"gdp":6424470752490},{"year":2014,"co2":2148.052,"coal_co2":1407.057,"oil_co2":513.84,"gas_co2":107.801,"cement_co2":115.825,"co2_per_capita":1.637,"primary_energy_consumption":7652.732,"total_ghg":3216.867,"methane":765.858,"nitrous_oxide":259.789,"share_global_co2":6.057,"gdp":6875186158349},{"year":2015,"co2":2231.817,"coal_co2":1449.587,"oil_co2":557.523,"gas_co2":103.062,"cement_co2":117.508,"co2_per_capita":1.681,"primary_energy_consumption":7892.49,"total_ghg":3290.423,"methane":773.451,"nitrous_oxide":263.334,"share_global_co2":6.304,"gdp":7391521519812},{"year":2016,"co2":2352.54,"coal_co2":1499.401,"oil_co2":616.112,"gas_co2":109.989,"cement_co2":123.281,"co2_per_capita":1.75,"primary_energy_consumption":8262.856,"total_ghg":3365.011,"methane":781.626,"nitrous_oxide":262.254,"share_global_co2":6.647,"gdp":8057465593010},{"year":2017,"co2":2425.722,"coal_co2":1551.256,"oil_co2":634.116,"gas_co2":116.479,"cement_co2":121.047,"co2_per_capita":1.784,"primary_energy_consumption":8571.671,"total_ghg":3415.989,"methane":786.601,"nitrous_oxide":267.236,"share_global_co2":6.743,"gdp":8550029645172},{"year":2018,"co2":2595.227,"coal_co2":1668.318,"oil_co2":658.715,"gas_co2":126.74,"cement_co2":138.965,"co2_per_capita":1.888,"primary_energy_consumption":9063.36,"total_ghg":3616.201,"methane":800.125,"nitrous_oxide":275.219,"share_global_co2":7.065,"gdp":9173201683791},{"year":2019,"co2":2611.175,"coal_co2":1661.94,"oil_co2":677.884,"gas_co2":125.233,"cement_co2":143.664,"co2_per_capita":1.88,"primary_energy_consumption":9281.595,"total_ghg":3613.001,"methane":800.179,"nitrous_oxide":282.638,"share_global_co2":7.041,"gdp":9595463242427},{"year":2020,"co2":2422.732,"coal_co2":1561.799,"oil_co2":607.535,"gas_co2":127.684,"cement_co2":122.908,"co2_per_capita":1.727,"primary_energy_consumption":8792.22,"total_ghg":3436.429,"methane":807.835,"nitrous_oxide":289.398,"share_global_co2":6.891,"gdp":8945313249462},{"year":2021,"co2":2675.778,"coal_co2":1767.297,"oil_co2":623.485,"gas_co2":133.192,"cement_co2":149.033,"co2_per_capita":1.892,"primary_energy_consumption":9544.969,"total_ghg":3697.615,"methane":821.053,"nitrous_oxide":290.389,"share_global_co2":7.258,"gdp":9801621018003},{"year":2022,"co2":2831.132,"coal_co2":1855.854,"oil_co2":684.014,"gas_co2":124.009,"cement_co2":164.331,"co2_per_capita":1.986,"primary_energy_consumption":10059.478,"total_ghg":3869.995,"methane":835.674,"nitrous_oxide":298.332,"share_global_co2":7.544,"gdp":10476248645535},{"year":2023,"co2":3062.756,"coal_co2":2032.048,"oil_co2":718.183,"gas_co2":132.42,"cement_co2":177.239,"co2_per_capita":2.13,"primary_energy_consumption":10827.859,"total_ghg":4121.424,"methane":847.637,"nitrous_oxide":305.944,"share_global_co2":8.04,"gdp":null},{"year":2024,"co2":3193.478,"coal_co2":2108.033,"oil_co2":747.333,"gas_co2":149.352,"cement_co2":185.97,"co2_per_capita":2.201,"primary_energy_consumption":11336.057,"total_ghg":4262.411,"methane":859.294,"nitrous_oxide":310.004,"share_global_co2":8.274,"gdp":null}];
+
+let rangeStart=2010, rangeEnd=2024;
+let activeMetric='co2';
+let smoothing=false;
+let showAnnotations=false;
+let chartType='line';
+let mainChartObj=null, sortAsc={year:true,co2:true};
+
+function filtered(){return DATA.filter(d=>d.year>=rangeStart&&d.year<=rangeEnd)}
+const gridC='rgba(100,116,139,0.1)';
+const tickC='#94a3b8';
+const baseOpts={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'},maxRotation:0,autoSkip:true,maxTicksLimit:10}},y:{grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'}}}}};
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ── SPARKLINES ──
+function makeSpark(id, vals, color){
+  const c=document.getElementById(id);if(!c)return;
+  new Chart(c,{type:'line',data:{labels:vals.map((_,i)=>i),datasets:[{data:vals,borderColor:color,borderWidth:1.5,pointRadius:0,tension:0.4,fill:true,backgroundColor:color+'18'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:600}}});
+}
+function initSparklines(){
+  const d=filtered();
+  makeSpark('spark-co2',d.map(x=>x.co2),'#2563eb');
+  makeSpark('spark-ghg',d.map(x=>x.total_ghg),'#d97706');
+  makeSpark('spark-cap',d.map(x=>x.co2_per_capita),'#7c3aed');
+  makeSpark('spark-share',d.map(x=>x.share_global_co2),'#0d9488');
+  makeSpark('spark-energy',d.map(x=>x.primary_energy_consumption),'#0891b2');
+}
+
+// ── MAIN TREND CHART ──
+function initMainChart(){
+  const d=filtered();
+  const labels=d.map(x=>x.year);
+  const metricMap={co2:{key:'co2',color:'#2563eb',label:'CO₂ (MtCO₂)'},ghg:{key:'total_ghg',color:'#d97706',label:'Total GHG (MtCO₂e)'},coal:{key:'coal_co2',color:'#ef4444',label:'Coal CO₂ (MtCO₂)'},oil:{key:'oil_co2',color:'#f59e0b',label:'Oil CO₂ (MtCO₂)'},per_capita:{key:'co2_per_capita',color:'#7c3aed',label:'CO₂ per capita (tCO₂)'}};
+  const m=metricMap[activeMetric]||metricMap.co2;
+  const vals=d.map(x=>x[m.key]);
+  const tens=smoothing?0.5:0.2;
+  const canvas=document.getElementById('mainChart');
+
+  // annotation for COVID dip
+  const covidIdx=d.findIndex(x=>x.year===2020);
+
+  if(mainChartObj){mainChartObj.destroy()}
+  const ds={label:m.label,data:vals,borderColor:m.color,backgroundColor:m.color+'15',borderWidth:2,pointRadius:showAnnotations?4:0,pointHoverRadius:5,tension:tens,fill:true,pointBackgroundColor:m.color};
+  mainChartObj=new Chart(canvas,{type:chartType==='bar'?'bar':'line',data:{labels,datasets:[ds]},options:{...JSON.parse(JSON.stringify(baseOpts)),plugins:{legend:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>` ${m.label}: ${ctx.parsed.y.toLocaleString('en-IN',{maximumFractionDigits:1})}`}}},animation:{duration:500}}});
+  
+  document.getElementById('main-chart-title').textContent=m.label.split('(')[0].trim()+' Trend';
+  const leg=document.getElementById('main-legend');
+  leg.innerHTML=`<span class="leg"><span class="leg-sq" style="background:${m.color}"></span>${m.label}</span>`;
+}
+
+// ── DONUT ──
+function initDonut(){
+  const latest=DATA[DATA.length-1];
+  const src={Coal:latest.coal_co2,Oil:latest.oil_co2,Gas:latest.gas_co2,Cement:latest.cement_co2};
+  const cols=['#ef4444','#f59e0b','#22c55e','#8b5cf6'];
+  new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:Object.keys(src),datasets:[{data:Object.values(src),backgroundColor:cols,borderWidth:2,borderColor:'#fff',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${ctx.label}: ${Math.round(ctx.parsed/t*100)}%`}}}},animation:{duration:800,animateRotate:true}}});
+  const leg=document.getElementById('donut-legend');
+  const total=Object.values(src).reduce((a,b)=>a+b,0);
+  leg.innerHTML=Object.keys(src).map((k,i)=>`<span class="leg"><span class="leg-sq" style="background:${cols[i]}"></span>${k} ${Math.round(src[k]/total*100)}%</span>`).join('');
+}
+
+// ── STACKED ──
+function initStacked(){
+  const d=filtered();
+  new Chart(document.getElementById('stackedChart'),{type:'line',data:{labels:d.map(x=>x.year),datasets:[{label:'Coal',data:d.map(x=>x.coal_co2),backgroundColor:'rgba(239,68,68,0.7)',borderColor:'rgba(239,68,68,0.9)',fill:true,tension:0.3,pointRadius:0,borderWidth:1},{label:'Oil',data:d.map(x=>x.oil_co2),backgroundColor:'rgba(245,158,11,0.7)',borderColor:'rgba(245,158,11,0.9)',fill:true,tension:0.3,pointRadius:0,borderWidth:1},{label:'Gas',data:d.map(x=>x.gas_co2),backgroundColor:'rgba(34,197,94,0.7)',borderColor:'rgba(34,197,94,0.9)',fill:true,tension:0.3,pointRadius:0,borderWidth:1},{label:'Cement',data:d.map(x=>x.cement_co2),backgroundColor:'rgba(139,92,246,0.7)',borderColor:'rgba(139,92,246,0.9)',fill:true,tension:0.3,pointRadius:0,borderWidth:1}]},options:{...JSON.parse(JSON.stringify(baseOpts)),plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{stacked:true,grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'},maxRotation:0,autoSkip:true,maxTicksLimit:10}},y:{stacked:true,grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'}}}},animation:{duration:600}}});
+}
+
+// ── GHG vs CO2 ──
+function initGHG(){
+  const d=filtered();
+  new Chart(document.getElementById('ghgChart'),{type:'line',data:{labels:d.map(x=>x.year),datasets:[{label:'CO₂',data:d.map(x=>x.co2),borderColor:'#2563eb',backgroundColor:'transparent',borderWidth:2,tension:0.3,pointRadius:0},{label:'Total GHG',data:d.map(x=>x.total_ghg),borderColor:'#d97706',backgroundColor:'transparent',borderWidth:2,tension:0.3,borderDash:[5,4],pointRadius:0}]},options:{...JSON.parse(JSON.stringify(baseOpts)),plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${Math.round(ctx.parsed.y).toLocaleString()}`}}},animation:{duration:600}}});
+}
+
+// ── INTENSITY ──
+function initIntensity(){
+  const d=DATA.filter(x=>x.gdp&&x.year>=rangeStart&&x.year<=rangeEnd);
+  new Chart(document.getElementById('intensityChart'),{type:'line',data:{labels:d.map(x=>x.year),datasets:[{label:'tCO₂/person',data:d.map(x=>x.co2_per_capita),borderColor:'#2563eb',backgroundColor:'transparent',borderWidth:2,tension:0.3,pointRadius:0,yAxisID:'y'},{label:'kg/$1000 GDP',data:d.map(x=>+(x.co2/x.gdp*1e12).toFixed(3)),borderColor:'#0d9488',backgroundColor:'transparent',borderWidth:2,tension:0.3,borderDash:[5,4],pointRadius:0,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'},maxRotation:0,autoSkip:true,maxTicksLimit:8}},y:{grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'},callback:v=>v.toFixed(2)},position:'left'},y2:{grid:{display:false},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'},callback:v=>v.toFixed(3)},position:'right'}},animation:{duration:600}}});
+}
+
+// ── GHG BAR ──
+function initGHGBar(){
+  const latest=DATA[DATA.length-1];
+  new Chart(document.getElementById('ghgBar'),{type:'bar',data:{labels:['CO₂','Methane','N₂O'],datasets:[{data:[latest.co2,latest.methane,latest.nitrous_oxide],backgroundColor:['#3b82f6','#f59e0b','#a855f7'],borderRadius:6,borderWidth:0,hoverOffset:4}]},options:{...JSON.parse(JSON.stringify(baseOpts)),plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(0).toLocaleString()} MtCO₂e`}}},scales:{x:{grid:{display:false},ticks:{color:tickC,font:{size:12,family:'JetBrains Mono'}}},y:{grid:{color:gridC},ticks:{color:tickC,font:{size:10,family:'JetBrains Mono'}}}},animation:{duration:700}}});
+}
+
+// ── INSIGHTS ──
+function initInsights(){
+  const ins=[
+    {icon:'🔥',cls:'red',title:'Coal lock-in risk',metric:'66%',body:'Coal accounts for <b>66% of India\'s CO₂</b> in 2024 — up from 58% in 2000. Supply chains with coal-heavy input energy face elevated Scope 2 risk in EcoVadis assessments.',tag:'High Risk'},
+    {icon:'📉',cls:'amber',title:'GDP intensity — bright spot',metric:'–15%',body:'CO₂ per GDP fell from <b>0.352 kg/$  in 2000 to ~0.30 in 2022</b>. India is partially decoupling economic growth from emissions intensity.',tag:'Positive'},
+    {icon:'🌐',cls:'red',title:'Global share accelerating',metric:'8.3%',body:'India\'s share of global CO₂ rose from <b>3.9% in 2000 to 8.3% in 2024</b>. Clients targeting EcoVadis Silver face tighter buyer scrutiny.',tag:'Watch'},
+    {icon:'🌱',cls:'green',title:'Methane — hidden lever',metric:'859 Mt',body:'Methane contributes <b>859 MtCO₂e</b> — 20% of total GHG. Targeting methane leaks achieves outsized ESG score improvements for BRSR filings.',tag:'Opportunity'},
+    {icon:'📊',cls:'amber',title:'COVID baseline risk',metric:'–7.2%',body:'Emissions dropped <b>7.2% in 2020</b> before rebounding. Companies using 2020 as baseline understate true emissions. Recommend 3-year average: 2018–2020.',tag:'BRSR Risk'},
+    {icon:'🏗️',cls:'blue',title:'Cement — BRSR blind spot',metric:'+300%',body:'Cement process emissions hit <b>186 MtCO₂ in 2024</b> — up 300% since 2000. Construction-adjacent clients carry significant Scope 3 embodied carbon.',tag:'Blind Spot'},
+  ];
+  const colors={red:'var(--red)',amber:'var(--amber)',green:'var(--green)',blue:'var(--blue)'};
+  document.getElementById('insight-grid').innerHTML=ins.map(i=>`
+    <div class="insight-card">
+      <div class="insight-header">
+        <div class="insight-icon-wrap ${i.cls}">${i.icon}</div>
+        <span class="tag tag-${i.cls==='red'?'red':i.cls==='amber'?'amber':i.cls==='green'?'green':'blue'}">${i.tag}</span>
+      </div>
+      <div class="insight-title">${i.title}</div>
+      <div class="insight-body">${i.body}</div>
+      <div class="insight-metric" style="color:${colors[i.cls]}">${i.metric}</div>
+    </div>`).join('');
+}
+
+// ── TABLE ──
+function buildTable(){
+  const tbl=document.getElementById('rawTable');
+  const cols=['Year','CO₂','Coal CO₂','Oil CO₂','Gas CO₂','Cement CO₂','Total GHG','Per Capita','Global %','YoY CO₂'];
+  tbl.innerHTML=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody=document.createElement('tbody');
+  const d=sortAsc.year?[...DATA].sort((a,b)=>a.year-b.year):[...DATA].sort((a,b)=>b.year-a.year);
+  d.forEach((row,i)=>{
+    const prev=DATA.find(x=>x.year===row.year-1);
+    const yoy=prev?((row.co2-prev.co2)/prev.co2*100):null;
+    const maxCo2=Math.max(...DATA.map(x=>x.co2));
+    const pct=row.co2/maxCo2*100;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${row.year}</td>
+      <td><div class="td-bar">${Math.round(row.co2).toLocaleString()}<div class="td-mini-bar"><div class="td-mini-fill" style="width:${pct}%"></div></div></div></td>
+      <td>${Math.round(row.coal_co2).toLocaleString()}</td>
+      <td>${Math.round(row.oil_co2).toLocaleString()}</td>
+      <td>${Math.round(row.gas_co2).toLocaleString()}</td>
+      <td>${Math.round(row.cement_co2).toLocaleString()}</td>
+      <td>${Math.round(row.total_ghg).toLocaleString()}</td>
+      <td>${row.co2_per_capita.toFixed(2)}</td>
+      <td>${row.share_global_co2.toFixed(2)}%</td>
+      <td class="${yoy===null?'':yoy>0?'td-up':'td-dn'}">${yoy===null?'—':(yoy>0?'▲+':'▼')+Math.abs(yoy).toFixed(1)+'%'}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+}
+
+function sortTable(key){
+  sortAsc[key]=!sortAsc[key];
+  if(key==='co2'){
+    const d=sortAsc.co2?[...DATA].sort((a,b)=>a.co2-b.co2):[...DATA].sort((a,b)=>b.co2-a.co2);
+    const tbody=document.querySelector('#rawTable tbody');
+    if(!tbody)return;
+    const rows=[...tbody.querySelectorAll('tr')];
+    const sorted=rows.sort((a,b)=>{
+      const av=parseFloat(a.cells[1].textContent.replace(/,/g,''));
+      const bv=parseFloat(b.cells[1].textContent.replace(/,/g,''));
+      return sortAsc.co2?av-bv:bv-av;
+    });
+    sorted.forEach(r=>tbody.appendChild(r));
+    toast('Sorted by CO₂ '+(sortAsc.co2?'↑ ascending':'↓ descending'));
+  } else {
+    sortAsc.year=!sortAsc.year;
+    buildTable();
+    toast('Sorted by Year '+(sortAsc.year?'↑ ascending':'↓ descending'));
+  }
+}
+
+// ── CONTROLS ──
+function setRange(s,e,btn){
+  document.querySelectorAll('.year-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  rangeStart=s; rangeEnd=e;
+  refreshCharts();
+  toast(`Range: ${s}–${e} · ${e-s+1} years`);
+}
+
+function setMetric(m,btn){
+  document.querySelectorAll('.metric-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeMetric=m;
+  initMainChart();
+  initSparklines();
+  toast('Metric: '+m.replace('_',' ').toUpperCase());
+}
+
+function setChartType(t,btn){
+  document.querySelectorAll('.cc-toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  chartType=t;
+  initMainChart();
+}
+
+function toggleAnnotations(btn){
+  showAnnotations=!showAnnotations;
+  btn.classList.toggle('active');
+  initMainChart();
+  toast('Annotations '+(showAnnotations?'ON':'OFF'));
+}
+
+function toggleSmoothing(btn){
+  smoothing=!smoothing;
+  btn.classList.toggle('active');
+  initMainChart();
+  initStacked();
+  initGHG();
+  initIntensity();
+  toast('Smoothing '+(smoothing?'ON':'OFF'));
+}
+
+// ── CSV EXPORT ──
+function downloadCSV(){
+  const keys=['year','co2','coal_co2','oil_co2','gas_co2','cement_co2','co2_per_capita','primary_energy_consumption','total_ghg','methane','nitrous_oxide','share_global_co2'];
+  const header=keys.join(',');
+  const rows=DATA.map(d=>keys.map(k=>d[k]??'').join(','));
+  const blob=new Blob([header+'\n'+rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='india_esg_ghg_owid_2024.csv';a.click();
+  toast('CSV downloaded — india_esg_ghg_owid_2024.csv');
+}
+
+// ── CORRELATION MATRIX ──
+function showCorrelation(){
+  const vars=['co2','coal_co2','oil_co2','gas_co2','cement_co2','co2_per_capita','total_ghg','methane','nitrous_oxide','primary_energy_consumption'];
+  const labels=['CO₂','Coal','Oil','Gas','Cement','PerCap','GHG','CH₄','N₂O','Energy'];
+  const d=DATA.filter(x=>x.gdp);
+  function mean(arr){return arr.reduce((a,b)=>a+b,0)/arr.length}
+  function pearson(a,b){const ma=mean(a),mb=mean(b);const num=a.reduce((s,v,i)=>s+(v-ma)*(b[i]-mb),0);const da=Math.sqrt(a.reduce((s,v)=>s+(v-ma)**2,0));const db=Math.sqrt(b.reduce((s,v)=>s+(v-mb)**2,0));return da&&db?num/(da*db):0}
+  const matrix=vars.map(v1=>vars.map(v2=>pearson(d.map(x=>x[v1]||0),d.map(x=>x[v2]||0))));
+
+  function corrColor(v){
+    const abs=Math.abs(v);
+    if(v>=0){
+      const r=Math.round(37+(59)*abs),g=Math.round(99+(99)*abs),b=Math.round(235*(1-abs)+235*abs);
+      return `rgba(${Math.round(59+abs*196)},${Math.round(130-abs*130)},${Math.round(246-abs*210)},${0.15+abs*0.7})`;
+    } else {
+      return `rgba(${Math.round(220+abs*35)},${Math.round(38+abs*20)},${Math.round(38+abs*20)},${0.1+abs*0.7})`;
+    }
+  }
+  const n=vars.length,sz=44;
+  let html=`<div style="display:inline-block;margin-top:12px"><div style="display:flex;margin-bottom:4px"><div style="width:${sz}px"></div>`;
+  labels.forEach(l=>html+=`<div style="width:${sz}px;text-align:center;font-size:9px;font-family:var(--mono);color:var(--text3);padding-bottom:4px;white-space:nowrap;overflow:hidden">${l}</div>`);
+  html+='</div>';
+  matrix.forEach((row,i)=>{
+    html+=`<div style="display:flex;align-items:center"><div style="width:${sz}px;font-size:9px;font-family:var(--mono);color:var(--text3);text-align:right;padding-right:6px;white-space:nowrap">${labels[i]}</div>`;
+    row.forEach((v,j)=>html+=`<div title="${labels[i]} vs ${labels[j]}: ${v.toFixed(3)}" style="width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:${corrColor(v)};margin:1px;font-size:8px;font-family:var(--mono);font-weight:600;color:${Math.abs(v)>0.5?(Math.abs(v)>0.8?'white':v>0?'#1d4ed8':'#dc2626'):'var(--text3)'};cursor:default;transition:opacity 0.15s" onmouseenter="this.style.opacity=0.7" onmouseleave="this.style.opacity=1">${v.toFixed(2)}</div>`);
+    html+='</div>';
+  });
+  html+='</div>';
+  const corr=document.getElementById('corr-section');
+  document.getElementById('corr-container').innerHTML=html;
+  corr.style.display='block';
+  corr.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Correlation matrix computed · Pearson r');
+}
+
+// ── NAV ──
+function navTo(section,btn){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const titles={overview:'India GHG Overview',emissions:'Emissions Trend',sources:'Source Breakdown',intensity:'Intensity Metrics',rawdata:'Raw Data Table'};
+  document.getElementById('page-title').textContent=titles[section]||'Overview';
+  const targets={overview:'kpi-section',emissions:'row1',sources:'row2',intensity:'row3',rawdata:'rawdata-section'};
+  const el=document.getElementById(targets[section]);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  toast(titles[section]);
+}
+
+// ── REFRESH ALL ──
+function refreshCharts(){
+  initMainChart();
+  initStacked();
+  initGHG();
+  initIntensity();
+  initSparklines();
+}
+
+// ── INIT ──
+function initAll(){
+  initSparklines();
+  initMainChart();
+  initDonut();
+  initStacked();
+  initGHG();
+  initIntensity();
+  initGHGBar();
+  initInsights();
+  buildTable();
+  const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:0.06});
+  document.querySelectorAll('.fade').forEach(el=>obs.observe(el));
+}
+
+window.addEventListener('load',initAll);
+</script>
+</body>
+</html>
